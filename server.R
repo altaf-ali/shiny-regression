@@ -6,7 +6,6 @@
 
 library(shiny)
 library(ggvis)
-library(plyr)
 library(tidyr)
 library(dplyr)
 
@@ -51,7 +50,7 @@ shinyServer(function(input, output, session) {
   output$residuals <- renderTable({
     residuals_summary <- summary(residuals(linear_model()))
     results <- data.frame(row.names = names(residuals_summary))
-    results$Residuals <- residuals_summary
+    results$Residuals <- as.double(residuals_summary)
     results
   })
   

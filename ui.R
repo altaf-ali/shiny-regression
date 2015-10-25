@@ -32,7 +32,7 @@ shinyUI(fluidPage(
   fluidRow(
     column(width = 4,
            sliderInput('sample_size', 'Sample Size', 
-                       min = 3, 
+                       min = 2, 
                        max = nrow(dataset), 
                        value = 10, 
                        step = 5,
