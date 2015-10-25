@@ -17,34 +17,35 @@ shinyUI(fluidPage(
   # Application title
   titlePanel("Linear Regression"),
 
-  tabsetPanel(
-    tabPanel("Regression", 
-             h4("California Schools", align = "center"),
-             fluidRow(
-               column(width = 8,
-                      ggvisOutput('plot')),
-               column(width = 4,
-                      tableOutput("coefficients"),
-                      tableOutput("r_squared"))
-             )
-    ),
-    tabPanel("Dataset",
-             dataTableOutput("dataset_table")
-    )
+  h4("California Schools", align = "center"),
+  fluidRow(
+    column(width = 7,
+           ggvisOutput('plot')),
+    column(width = 5,
+           tableOutput("coefficients"),
+           tableOutput("r_squared"),
+           tableOutput("residuals"))
   ),
 
   hr(),
   
   fluidRow(
-    column(width = 6,
+    column(width = 4,
            sliderInput('sample_size', 'Sample Size', 
-                       min=3, 
-                       max=nrow(dataset), 
-                       value=10, 
-                       step=5,
+                       min = 3, 
+                       max = nrow(dataset), 
+                       value = 10, 
+                       step = 5,
                        animate = animationOptions(interval = 200))
     ),
-    column(width = 6,
+    column(width = 4,
+           sliderInput('confidence_interval', 'Confidence Interval (%)', 
+                       min = 0, 
+                       max = 99.9, 
+                       value = 95, 
+                       step = 0.1)
+    ),
+    column(width = 4,
            checkboxGroupInput("show_residuals", label = "Show Residuals", 
                               choices = list("Lines" = 1, "Values" = 2),
                               selected = 1)
