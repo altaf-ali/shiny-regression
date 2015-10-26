@@ -17,26 +17,40 @@ shinyUI(fluidPage(
   # Application title
   titlePanel("Linear Regression"),
 
-  h4("California Schools", align = "center"),
+  h4("California Test Score Dataset", align = "center"),
   fluidRow(
     column(width = 7,
            ggvisOutput('plot')),
     column(width = 5,
+           align = "right",
            tableOutput("coefficients"),
-           tableOutput("r_squared"),
-           tableOutput("residuals"))
+           fluidRow(
+             column(width = 8,
+                    align = "right",
+                    tableOutput("r_squared"),
+                    ggvisOutput('pdf')
+             ),
+             column(width = 4,
+                    align = "right",
+                    tableOutput("residuals")
+             )
+           )
+    )
   ),
 
   hr(),
   
   fluidRow(
-    column(width = 4,
+    column(width = 3,
            sliderInput('sample_size', 'Sample Size', 
                        min = 2, 
                        max = nrow(dataset), 
                        value = 10, 
                        step = 5,
                        animate = animationOptions(interval = 200))
+    ),
+    column(width = 2,
+           actionButton("resample", label = "Resample")
     ),
     column(width = 4,
            sliderInput('confidence_interval', 'Confidence Interval (%)', 
@@ -45,7 +59,7 @@ shinyUI(fluidPage(
                        value = 95, 
                        step = 0.1)
     ),
-    column(width = 4,
+    column(width = 2,
            checkboxGroupInput("show_residuals", label = "Show Residuals", 
                               choices = list("Lines" = 1, "Values" = 2),
                               selected = 1)

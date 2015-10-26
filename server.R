@@ -6,27 +6,35 @@
 
 library(shiny)
 library(ggvis)
+library(plyr)
 library(tidyr)
 library(dplyr)
 
-data("CASchools")    
-
 axis_range <- function(axis, accuracy) {
-  c(round_any(min(axis), accuracy, f = floor), round_any(max(axis), accuracy, f = ceiling))
+  c(plyr::round_any(min(axis), accuracy, f = floor), plyr::round_any(max(axis), accuracy, f = ceiling))
 }
-
-set.seed(666) # use 111 to see upward sloping line initially
-dataset <- CASchools[sample(1:nrow(CASchools), nrow(CASchools)),]
-dataset$Student.Teacher.Ratio <- dataset$students / dataset$teachers
-dataset$score <- (dataset$math + dataset$read) / 2
-
-str_domain <- axis_range(dataset$Student.Teacher.Ratio, 2)
-score_domain <- axis_range(dataset$score, 20)
 
 shinyServer(function(input, output, session) {
 
+  data("CASchools")    
+  
+  set.seed(666) # use 111 to see upward sloping line initially
+  CA_dataset <- CASchools[sample(1:nrow(CASchools), nrow(CASchools)),]
+  CA_dataset$Student.Teacher.Ratio <- dataset$students / dataset$teachers
+  CA_dataset$score <- (dataset$math + dataset$read) / 2
+  
+  str_domain <- axis_range(CA_dataset$Student.Teacher.Ratio, 2)
+  score_domain <- axis_range(CA_dataset$score, 20)
+  
+  v <- reactiveValues(data = CA_dataset)
+  
+  observeEvent(input$resample, {
+    set.seed(NULL) # use 111 to see upward sloping line initially
+    v$data <- CA_dataset[sample(1:nrow(CA_dataset), nrow(CA_dataset)),]
+  })
+  
   data_sampler <- reactive({
-    dataset[1:input$sample_size,]
+    v$data[1:input$sample_size,]
   })
   
   linear_model <- reactive({
@@ -68,13 +76,11 @@ shinyServer(function(input, output, session) {
       dplyr::select(district, Student.Teacher.Ratio, score, predictions, residuals) 
     
     if (!any(input$show_residuals == 1)) {
-      dataset <- dataset %>% 
-        dplyr::mutate(predictions = min(predictions))
+      dataset <- dplyr::mutate(dataset, predictions = min(predictions))
     }
 
     if (!any(input$show_residuals == 2)) {
-      dataset <- dataset %>% 
-        dplyr::mutate(residuals = 0)
+      dataset <- dplyr::mutate(dataset, residuals = 0)
     }
 
     dataset
@@ -98,5 +104,50 @@ shinyServer(function(input, output, session) {
       layer_text(text := ~residuals)
   }) %>%
   bind_shiny("plot")
+  
+  dist_maker <- reactive({
+    model <- linear_model()
+    model_coef <- coef(summary(model))
+    tval <- abs(model_coef["Student.Teacher.Ratio","t value"])
+
+    x <- seq(-5,5,length.out=100)
+    y <- dnorm(x, 0, 1)
+    pdf <- data.frame(x = x, y = y, group_id = 0)
+    
+    bottom_left <- pdf %>%
+      dplyr::filter(y > 0 & x < (-1 * tval)) %>%
+      dplyr::mutate(y = 0, group_id = -1)  %>%
+      dplyr::arrange(desc(x))
+    
+    top_left <- pdf %>%
+      dplyr::filter(y > 0 & x < (-1 * tval)) %>%
+      dplyr::mutate(group_id = -1)
+    
+    bottom_right <- pdf %>%
+      dplyr::filter(y > 0 & x > tval) %>%
+      dplyr::mutate(y = 0, group_id = 1)  %>%
+      dplyr::arrange(desc(x))
+    
+    top_right <- pdf %>%
+      dplyr::filter(y > 0 & x > tval) %>%
+      dplyr::mutate(group_id = 1)
+    
+    rbind(pdf, top_left, bottom_left, bottom_right, top_right)
+  })
+  
+  reactive({
+    dist_maker %>%
+      ggvis(x = ~x, y = ~y) %>%
+      set_options(height = 200, width = 300, duration = 0) %>%
+      add_axis("x", title = "") %>% 
+      scale_numeric("x", domain = c(-5, 5), nice = TRUE) %>% 
+      add_axis("y", title = "") %>% 
+      scale_numeric("y", domain = c(0, 0.4), nice = TRUE) %>% 
+      group_by(group_id) %>% 
+      layer_paths(stroke := "black", fill := NA) %>% 
+      filter(group_id != 0) %>% 
+      layer_paths(stroke := NA, fill := "red")
+  }) %>%
+  bind_shiny("pdf")
   
 })
