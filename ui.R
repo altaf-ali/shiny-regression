@@ -10,10 +10,9 @@ library(ggvis)
 library(AER)
 
 data("CASchools")
-dataset <- CASchools
 
 shinyUI(fluidPage(
-  
+
   # Application title
   fluidRow(
     column(width = 10,
@@ -40,7 +39,7 @@ shinyUI(fluidPage(
              column(width = 8,
                     align = "right",
                     tableOutput("r_squared"),
-                    ggvisOutput('pdf')
+                    ggvisOutput('pdf_plot')
              ),
              column(width = 4,
                     align = "right",
@@ -56,7 +55,7 @@ shinyUI(fluidPage(
     column(width = 3,
            sliderInput('sample_size', 'Sample Size', 
                        min = 2, 
-                       max = nrow(dataset), 
+                       max = nrow(CASchools), 
                        value = 10, 
                        step = 5,
                        animate = animationOptions(interval = 200))
@@ -64,7 +63,7 @@ shinyUI(fluidPage(
     column(width = 2,
            actionButton("resample", label = "Resample", icon = icon("refresh"))
     ),
-    column(width = 3,
+    column(width = 4,
            sliderInput('confidence_interval', 'Confidence Interval (%)', 
                        min = 0, 
                        max = 99.9, 

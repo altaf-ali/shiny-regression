@@ -9,6 +9,7 @@ library(ggvis)
 library(plyr)
 library(tidyr)
 library(dplyr)
+library(AER)
 
 axis_range <- function(axis, accuracy) {
   c(plyr::round_any(min(axis), accuracy, f = floor), plyr::round_any(max(axis), accuracy, f = ceiling))
@@ -105,14 +106,13 @@ shinyServer(function(input, output, session) {
   }) %>%
   bind_shiny("plot")
   
-  dist_maker <- reactive({
+  pdf_maker <- reactive({
     model <- linear_model()
     model_coef <- coef(summary(model))
     tval <- abs(model_coef["Student.Teacher.Ratio","t value"])
 
     x <- seq(-5,5,length.out=100)
-    y <- dnorm(x, 0, 1)
-    pdf <- data.frame(x, y, group_id = 0)
+    pdf <- data.frame(x, y = dnorm(x, 0, 1), group_id = 0)
     
     bottom_left <- pdf %>%
       dplyr::filter(y > 0 & x < (-1 * tval)) %>%
@@ -136,7 +136,7 @@ shinyServer(function(input, output, session) {
   })
   
   reactive({
-    dist_maker %>%
+    pdf_maker %>%
       ggvis(x = ~x, y = ~y) %>%
       set_options(height = 200, width = 300, duration = 0) %>%
       add_axis("x", title = "") %>% 
@@ -148,6 +148,6 @@ shinyServer(function(input, output, session) {
       filter(group_id != 0) %>% 
       layer_paths(stroke := NA, fill := "red")
   }) %>%
-  bind_shiny("pdf")
+  bind_shiny("pdf_plot")
   
 })
