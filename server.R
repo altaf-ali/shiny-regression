@@ -20,8 +20,8 @@ shinyServer(function(input, output, session) {
   
   set.seed(666) # use 111 to see upward sloping line initially
   CA_dataset <- CASchools[sample(1:nrow(CASchools), nrow(CASchools)),]
-  CA_dataset$Student.Teacher.Ratio <- dataset$students / dataset$teachers
-  CA_dataset$score <- (dataset$math + dataset$read) / 2
+  CA_dataset$Student.Teacher.Ratio <- CA_dataset$students / CA_dataset$teachers
+  CA_dataset$score <- (CA_dataset$math + CA_dataset$read) / 2
   
   str_domain <- axis_range(CA_dataset$Student.Teacher.Ratio, 2)
   score_domain <- axis_range(CA_dataset$score, 20)
@@ -112,7 +112,7 @@ shinyServer(function(input, output, session) {
 
     x <- seq(-5,5,length.out=100)
     y <- dnorm(x, 0, 1)
-    pdf <- data.frame(x = x, y = y, group_id = 0)
+    pdf <- data.frame(x, y, group_id = 0)
     
     bottom_left <- pdf %>%
       dplyr::filter(y > 0 & x < (-1 * tval)) %>%

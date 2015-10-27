@@ -15,7 +15,19 @@ dataset <- CASchools
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel("Linear Regression"),
+  fluidRow(
+    column(width = 10,
+           titlePanel("Linear Regression")
+    ),
+    column(width = 2,
+           align = "right",
+           br(),
+           tags$a("  Get Code", 
+                  type = "button", 
+                  class = "btn btn-small btn-primary btn-sharp fa fa-5x fa-github pull-left", 
+                  href = "https://github.com/altaf-ali/shiny-regression")
+    )
+  ),
 
   h4("California Test Score Dataset", align = "center"),
   fluidRow(
@@ -50,9 +62,9 @@ shinyUI(fluidPage(
                        animate = animationOptions(interval = 200))
     ),
     column(width = 2,
-           actionButton("resample", label = "Resample")
+           actionButton("resample", label = "Resample", icon = icon("refresh"))
     ),
-    column(width = 4,
+    column(width = 3,
            sliderInput('confidence_interval', 'Confidence Interval (%)', 
                        min = 0, 
                        max = 99.9, 
