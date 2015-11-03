@@ -13,18 +13,15 @@ data("CASchools")
 
 shinyUI(fluidPage(
 
+  includeCSS("http://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.1.1/gh-fork-ribbon.min.css"),
+  includeCSS("github_fork.css"),
+  includeHTML("github_fork.html"),
+  
   # Application title
   fluidRow(
-    column(width = 10,
+    column(width = 1),
+    column(width = 11,
            titlePanel("Linear Regression")
-    ),
-    column(width = 2,
-           align = "right",
-           br(),
-           tags$a("  Get Code", 
-                  type = "button", 
-                  class = "btn btn-small btn-primary btn-sharp fa fa-5x fa-github pull-left", 
-                  href = "https://github.com/altaf-ali/shiny-regression")
     )
   ),
 
@@ -39,13 +36,14 @@ shinyUI(fluidPage(
              column(width = 8,
                     align = "right",
                     tableOutput("r_squared"),
-                    ggvisOutput('pdf_plot')
+                    ggvisOutput('tdist_plot')
              ),
              column(width = 4,
                     align = "right",
                     tableOutput("residuals")
              )
-           )
+           ),
+           ggvisOutput('pvalue_plot')
     )
   ),
 

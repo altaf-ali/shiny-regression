@@ -106,13 +106,14 @@ shinyServer(function(input, output, session) {
   }) %>%
   bind_shiny("plot")
   
-  pdf_maker <- reactive({
+  tdist_maker <- reactive({
     model <- linear_model()
     model_coef <- coef(summary(model))
     tval <- abs(model_coef["Student.Teacher.Ratio","t value"])
 
     x <- seq(-5,5,length.out=100)
-    pdf <- data.frame(x, y = dnorm(x, 0, 1), group_id = 0)
+    pdf <- data.frame(x, y = dt(x, df = Inf), group_id = 0)
+#    pdf <- data.frame(x, y = dnorm(x, 0, 1), group_id = 0)
     
     bottom_left <- pdf %>%
       dplyr::filter(y > 0 & x < (-1 * tval)) %>%
@@ -136,10 +137,10 @@ shinyServer(function(input, output, session) {
   })
   
   reactive({
-    pdf_maker %>%
+    tdist_maker %>%
       ggvis(x = ~x, y = ~y) %>%
-      set_options(height = 200, width = 300, duration = 0) %>%
-      add_axis("x", title = "") %>% 
+      set_options(height = 200, width = 300, duration = 0, resizable = FALSE) %>%
+      add_axis("x", title = "t-statistic") %>% 
       scale_numeric("x", domain = c(-5, 5), nice = TRUE) %>% 
       add_axis("y", title = "") %>% 
       scale_numeric("y", domain = c(0, 0.4), nice = TRUE) %>% 
@@ -148,6 +149,25 @@ shinyServer(function(input, output, session) {
       filter(group_id != 0) %>% 
       layer_paths(stroke := NA, fill := "red")
   }) %>%
-  bind_shiny("pdf_plot")
+  bind_shiny("tdist_plot")
   
+  pvalue_maker <- reactive({
+    model <- linear_model()
+    pvalue <- summary(model)$coefficients[2,4]
+    if (is.nan(pvalue))
+      pvalue <- 0
+    data.frame(x = seq(0, pvalue, 0.001), y = 1)
+  })
+  
+  reactive({
+    pvalue_maker %>% 
+      ggvis(~x, ~y) %>% 
+      set_options(height = 60, width = 500, duration = 0, resizable = FALSE) %>%
+      layer_lines(strokeWidth := 5, stroke := "red") %>% 
+      add_axis("x", title = "p-value", subdivide = 1) %>% 
+      scale_numeric("x", domain = c(0, 1)) %>% 
+      add_axis("y", title = "", values = c(1, 1), properties = axis_props(labels = list(fontSize = 0))) %>% 
+      scale_numeric("y", domain = c(0, 1))
+  }) %>%
+  bind_shiny("pvalue_plot")
 })
