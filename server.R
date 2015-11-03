@@ -153,7 +153,7 @@ shinyServer(function(input, output, session) {
   
   pvalue_maker <- reactive({
     model <- linear_model()
-    pvalue <- summary(model)$coefficients[2,4]
+    pvalue <- summary(model)$coefficients["Student.Teacher.Ratio","Pr(>|t|)"]
     if (is.nan(pvalue))
       pvalue <- 0
     data.frame(x = seq(0, pvalue, 0.001), y = 1)
